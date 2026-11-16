@@ -11,8 +11,8 @@
  *          Francesco Conti,  UniBo (<f.conti@unibo.it>)
  */
 
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef MAIN_H
+#define MAIN_H
 
 #include "pmsis.h"
 #include "pulp_nn_kernels.h"
@@ -124,4 +124,4 @@ typedef struct network_layer_s {
 #define LAYER_TYPE(x) NETWORK_TYPES[(x)]
 #define LAYER_DIM(x)  *(layer_dim_t *)NETWORK_DIMS[(x)]
 
-#endif // __MAIN_H__
+#endif // MAIN_H

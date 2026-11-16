@@ -1,5 +1,5 @@
-#ifndef __KERNEL_H__
-#define __KERNEL_H__
+#ifndef KERNEL_H
+#define KERNEL_H
 
 /*
  * Execute the convolution kernel
@@ -25,4 +25,4 @@ void tile_store(int h_tile_idx, int w_tile_idx, int c_tile_idx, int buffer_idx);
  */
 void tile_load_store_wait();
 
-#endif // __KERNEL_H__
+#endif // KERNEL_H

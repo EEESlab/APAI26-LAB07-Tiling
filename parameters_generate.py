@@ -48,8 +48,8 @@ def license(filename):
 
 def header_guard_begin(filename):
     guard = filename.replace(".", "_")
-    return """#ifndef __{GUARD}__
-#define __{GUARD}__
+    return """#ifndef {GUARD}
+#define {GUARD}
 
 """.format(
         GUARD=guard.upper()
@@ -58,7 +58,7 @@ def header_guard_begin(filename):
 
 def header_guard_end(filename):
     guard = filename.replace(".", "_")
-    return "#endif  // __{GUARD}__\n".format(GUARD=guard.upper())
+    return "#endif // {GUARD}\n".format(GUARD=guard.upper())
 
 
 def includes():

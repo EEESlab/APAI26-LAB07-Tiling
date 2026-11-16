@@ -9,8 +9,8 @@
  *          Francesco Conti,  UniBo (<f.conti@unibo.it>)
  */
 
-#ifndef __NETWORK_DESC_H__
-#define __NETWORK_DESC_H__
+#ifndef NETWORK_DESC_H
+#define NETWORK_DESC_H
 
 /*
  * Depends from the model. Let's keep it simple and focus on the first conv layer.
@@ -30,4 +30,4 @@ extern unsigned int l1_input_size;
 extern unsigned int l1_weights_size;
 extern unsigned int l1_output_size;
 
-#endif // __NETWORK_DESC_H__
+#endif // NETWORK_DESC_H
