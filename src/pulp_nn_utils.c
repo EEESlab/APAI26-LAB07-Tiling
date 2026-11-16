@@ -17,41 +17,36 @@
  * limitations under the License. 
  */
 
-
 #include "pulp_nn_utils.h"
 
-void __attribute__((noinline)) pulp_zero_mem(uint8_t * pBuffer, unsigned int size)
+void __attribute__((noinline)) pulp_zero_mem(uint8_t *pBuffer, unsigned int size)
 {
-  int lfover = size &0x3;
-  for (int i=0; i<(size>>2); i++)
-  {
-    *((v4u *)pBuffer) = (v4u){0,0,0,0};
-    MemoryFence();
-    pBuffer+=4;
-  }
-  while(lfover)
-  {
-    *pBuffer++=0;
-    lfover--;
-  }
+    int lfover = size & 0x3;
+    for (int i = 0; i < (size >> 2); i++) {
+        *((v4u *)pBuffer) = (v4u){0, 0, 0, 0};
+        MemoryFence();
+        pBuffer += 4;
+    }
+    while (lfover) {
+        *pBuffer++ = 0;
+        lfover--;
+    }
 }
 
-void __attribute__((noinline)) pulp_nn_im2col_u8_to_u8(uint8_t * pInput, uint8_t * pOutput, unsigned int blockSize)
+void __attribute__((noinline)) pulp_nn_im2col_u8_to_u8(uint8_t *pInput, uint8_t *pOutput, unsigned int blockSize)
 {
-  unsigned int blkCnt = blockSize >> 2u;
-  int lfover = blockSize & 0x3;
+    unsigned int blkCnt = blockSize >> 2u;
+    int lfover          = blockSize & 0x3;
 
-  for (int i = 0; i<blkCnt; i++)
-  {
-    *((v4u*)pOutput) = *((v4u*) pInput);
-    pInput+=4;
-    pOutput+=4;
-  }
-  while(lfover)
-  {
-    *((uint8_t*)pOutput) = *((uint8_t*)pInput);
-    pOutput++;
-    pInput++;
-    lfover--;
-  }
+    for (int i = 0; i < blkCnt; i++) {
+        *((v4u *)pOutput) = *((v4u *)pInput);
+        pInput += 4;
+        pOutput += 4;
+    }
+    while (lfover) {
+        *((uint8_t *)pOutput) = *((uint8_t *)pInput);
+        pOutput++;
+        pInput++;
+        lfover--;
+    }
 }

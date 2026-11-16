@@ -17,32 +17,30 @@
  * limitations under the License.
  */
 
-
 #include "pmsis.h"
 
-void pulp_nn_conv( uint8_t *pIn,
-                   uint8_t *pIm2ColBuffer,
-                   int8_t *pBias,
-                   uint8_t *pOut,
-                   int8_t *pWeight,
-                   uint16_t out_shift,
-                   uint16_t dim_in_x,
-                   uint16_t dim_in_y,
-                   uint16_t ch_in,
-                   uint16_t dim_out_x,
-                   uint16_t dim_out_y,
-                   uint16_t ch_out,
-                   uint16_t dim_kernel_x,
-                   uint16_t dim_kernel_y,
-                   uint16_t padding_y_top,
-                   uint16_t padding_y_bottom,
-                   uint16_t padding_x_left,
-                   uint16_t padding_x_right,
-                   uint16_t stride_x,
-                   uint16_t stride_y);
+void pulp_nn_conv(uint8_t *pIn,
+                  uint8_t *pIm2ColBuffer,
+                  int8_t *pBias,
+                  uint8_t *pOut,
+                  int8_t *pWeight,
+                  uint16_t out_shift,
+                  uint16_t dim_in_x,
+                  uint16_t dim_in_y,
+                  uint16_t ch_in,
+                  uint16_t dim_out_x,
+                  uint16_t dim_out_y,
+                  uint16_t ch_out,
+                  uint16_t dim_kernel_x,
+                  uint16_t dim_kernel_y,
+                  uint16_t padding_y_top,
+                  uint16_t padding_y_bottom,
+                  uint16_t padding_x_left,
+                  uint16_t padding_x_right,
+                  uint16_t stride_x,
+                  uint16_t stride_y);
 
-uint8_t *pulp_nn_matmul(
-                        uint8_t *pIn,
+uint8_t *pulp_nn_matmul(uint8_t *pIn,
                         int8_t *pBias,
                         uint8_t *pOut,
                         uint8_t *pOut2,

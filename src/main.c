@@ -32,11 +32,15 @@ int NETWORK_DIMS[NB_LAYER][NB_DIM_ARGS] = {{INPUT_WIDTH,             // x_in
                                             0,                       // rig_pad
                                             WEIGHTS_KERNEL_WIDTH,    // x_ker
                                             WEIGHTS_KERNEL_HEIGHT}}; // y_ker
+
 PI_L2 network_layer_t network_layers[NB_LAYER];
 PI_L1 network_layer_t l1_layer;
+
 struct pi_device cluster;
+
 int l1_alloc_error           = 0;
 int tiling_error             = 0;
+
 unsigned int l1_input_size   = 0;
 unsigned int l1_weights_size = 0;
 unsigned int l1_output_size  = 0;
@@ -49,6 +53,7 @@ void cluster_init()
 #if defined(DEBUG)
     printf("-> Entering Cluster Initialization...\n");
 #endif
+
     /*
      * Alloc L1 space for tiles: BE CAREFUL -> L1 is very limited (64kB)
      */
@@ -94,7 +99,7 @@ void cluster_init()
      *
      * The sizes of the layer (or of one tile, when tiling) are stored in:
      *   Input:   l1_layer.layer_dim.x_in,  l1_layer.layer_dim.y_in,  l1_layer.layer_dim.c_in
-     *   Kernel:  l1_layer.layer_dim.x_ker, l1_layer.layer_dim.y_ker (+ c_in and c_out)
+     *   Kernel:  l1_layer.layer_dim.x_ker, l1_layer.layer_dim.y_ker
      *   Output:  l1_layer.layer_dim.x_out, l1_layer.layer_dim.y_out, l1_layer.layer_dim.c_out
      * Input and output are unsigned char, weights are signed char.
      *
@@ -108,6 +113,7 @@ void cluster_init()
     l1_layer.input_data  = pi_l1_malloc(&cluster, l1_input_size);
     l1_layer.param_data  = pi_l1_malloc(&cluster, l1_weights_size);
     l1_layer.output_data = pi_l1_malloc(&cluster, l1_output_size);
+
     if (l1_layer.input_data == NULL || l1_layer.param_data == NULL || l1_layer.output_data == NULL) {
         l1_alloc_error = 1;
     }
@@ -141,6 +147,7 @@ void cluster_init()
 int main()
 {
     printf("\nEntering Main. Checking for Exercise...\n");
+
 #if defined EXERCISE1
     printf("Executing Exercise 1\n");
 #elif defined EXERCISE2
@@ -173,26 +180,34 @@ int main()
      * PULP Cluster has 8 identical cores that can share and compute heavy computational workload in parallel.
      * PULP Cluster is a PMSIS device. Open it and send the task to initialize it.
      */
-
     struct pi_cluster_conf cluster_conf;
+
     pi_cluster_conf_init(&cluster_conf);
     pi_open_from_conf(&cluster, &cluster_conf);
+
     if (pi_cluster_open(&cluster)) {
         return -CLUSTER_ERROR;
     }
 
     struct pi_cluster_task cluster_task;
+
     pi_cluster_send_task_to_cl(&cluster, pi_cluster_task(&cluster_task, cluster_init, NULL));
+
     if (tiling_error) {
         printf("ERROR: TILING_PARAMETER must divide the output spatial dimension N = %d.\n",
                network_layers[0].layer_dim.x_out);
+
         pi_cluster_close(&cluster);
+
         return -CLUSTER_ERROR;
     }
+
     if (l1_alloc_error) {
         printf("ERROR: L1 allocation failed, the layer (or tile) does not fit in L1 (64kB). Use a larger tiling "
                "factor.\n");
+
         pi_cluster_close(&cluster);
+
         return -CLUSTER_ERROR;
     }
 
@@ -203,11 +218,14 @@ int main()
     pi_cluster_send_task_to_cl(&cluster, pi_cluster_task(&cluster_task, layer_run, NULL));
 
     pi_perf_stop();
+
     uint32_t instr_cnt  = pi_perf_read(PI_PERF_INSTR);
     uint32_t cycles_cnt = pi_perf_read(PI_PERF_CYCLES);
+
 #ifdef PERFORMANCE
     printf("[FC]: instructions = %u, tot_cycles = %u\n", (unsigned int)instr_cnt, (unsigned int)cycles_cnt);
 #endif
+
     err = layer_check();
     if (err) {
         return err;
@@ -226,5 +244,6 @@ int main()
 #if defined(DEBUG)
     printf("Exiting Main...\n");
 #endif
+
     return 0;
 }
