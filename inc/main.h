@@ -37,7 +37,8 @@
 #endif
 
 #if defined(EXERCISE1)
-#define USE_L1_MEM // EXERCISE 1, steps 4-6: comment out this line to run the layer from L2
+// EXERCISE 1, steps 4-6: comment out this line to run the layer from L2
+#define USE_L1_MEM
 #elif defined(EXERCISE2)
 #define USE_L1_MEM
 #define ENABLE_TILING

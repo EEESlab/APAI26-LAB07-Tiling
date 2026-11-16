@@ -94,9 +94,8 @@ void layer_run()
 #endif
 
 #ifdef ENABLE_TILING
-    /* EXERCISE 2: COMPLETE WITH THE NUMBER OF TILES ALONG H AND W */
-    nb_h_tile = /* YOUR CODE HERE */;
-    nb_w_tile = /* YOUR CODE HERE */;
+    nb_h_tile = network_layers[0].layer_dim.y_out / l1_layer.layer_dim.y_out;
+    nb_w_tile = network_layers[0].layer_dim.x_out / l1_layer.layer_dim.x_out;
 #else
     nb_h_tile = 1;
     nb_w_tile = 1;
@@ -115,6 +114,12 @@ void layer_run()
     /*
      * No tiling, the whole layer is a single tile.
      * Load -> wait -> compute -> store -> wait.
+     *
+     * Arguments of tile_load / tile_store: (h_tile_idx, w_tile_idx, c_tile_idx, buffer_idx)
+     *   - h_tile_idx = 0, w_tile_idx = 0: there is only one tile, the one at row 0, column 0
+     *     (the tile indexes select WHERE in L2 the tile starts; with a single tile that is the start)
+     *   - c_tile_idx = 0: channels are never tiled
+     *   - buffer_idx = 0: only one L1 buffer is used (it becomes 0 or 1 only with double buffering)
      */
     tile_load(0, 0, 0, 0);
     tile_load_store_wait();
@@ -142,7 +147,7 @@ void layer_run()
 #else
     /** EXERCISE 3: implement double buffering
      *
-     *  Double buffering pseudo code:
+     *  Double buffering main steps:
      *
      *    load tiles[0] -> current_buffer
      *    for i in range(len(tiles)):
@@ -153,19 +158,30 @@ void layer_run()
      *    wait for previous loads and stores before exiting
      */
     const int nb_tiles = nb_h_tile * nb_w_tile;
-    int buffer_idx     = 0;
+    int current_buffer_idx     = 0;
 
     /*
-     * Load tile 0's input data (outside the for loop)
+     * Reminder of arguments for tile_load / tile_store: (h_tile_idx, w_tile_idx, c_tile_idx, buffer_idx)
+     *   - h_tile_idx, w_tile_idx: row and column of the tile to load/store (they select WHERE in L2 it starts)
+     *   - c_tile_idx = 0: channels are never tiled
+     *   - buffer_idx: which of the two L1 buffers to use (0 or 1). It alternates between consecutive tiles:
+     *     while the kernel works on current_buffer_idx, the next tile is loaded into next_buffer_idx
      */
+    // Load tile 0's input data (outside the for loop)
     /* YOUR CODE HERE */;
 
     for (int h_tile_idx = 0; h_tile_idx < nb_h_tile; h_tile_idx++) {
         for (int w_tile_idx = 0; w_tile_idx < nb_w_tile; w_tile_idx++) {
-            const int next_buffer_idx = (buffer_idx + 1) % 2;
+            // Compute the next buffer index, relative to the current one (0 or 1)
+            const int next_buffer_idx = (current_buffer_idx + 1) % 2;
+
+            // Compute the next tile indexes, relative to the current ones (h_tile_idx, w_tile_idx)
             const int next_w_tile_idx = (w_tile_idx + 1) % nb_w_tile;
+
             // If the next_w_tile is 0, that means we went into a new row, so the next_h_tile is h_tile + 1
             const int next_h_tile_idx = h_tile_idx + (next_w_tile_idx == 0 ? 1 : 0);
+
+            // Compute the next tile index, relative to the current one (h_tile_idx, w_tile_idx)
             const int next_tile_idx   = next_h_tile_idx * nb_w_tile + next_w_tile_idx;
 
             /*
@@ -194,7 +210,7 @@ void layer_run()
              */
             /* YOUR CODE HERE */;
 
-            buffer_idx = next_buffer_idx;
+            current_buffer_idx = next_buffer_idx;
         }
     }
 

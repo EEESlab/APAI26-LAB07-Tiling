@@ -75,7 +75,8 @@ void cluster_init()
     l1_layer.layer_dim.y_stride = network_layers[0].layer_dim.y_stride;
 
 #ifdef ENABLE_TILING
-    /* EXERCISE 2 and 3: SET THE TILING FACTOR.
+    /* EXERCISE 2 and
+     * EXERCISE 3: SET THE TILING FACTOR.
      * The output (N x N) is split into TILING_PARAMETER x TILING_PARAMETER tiles,
      * so TILING_PARAMETER must divide the output spatial dimension N. */
     const int TILING_PARAMETER = /* YOUR CODE HERE */;
@@ -101,10 +102,12 @@ void cluster_init()
      *   Input:   l1_layer.layer_dim.x_in,  l1_layer.layer_dim.y_in,  l1_layer.layer_dim.c_in
      *   Kernel:  l1_layer.layer_dim.x_ker, l1_layer.layer_dim.y_ker
      *   Output:  l1_layer.layer_dim.x_out, l1_layer.layer_dim.y_out, l1_layer.layer_dim.c_out
+
      * Input and output are unsigned char, weights are signed char.
-     *
-     * EXERCISE 3: with double buffering, some of these buffers must be allocated twice
-     * (NB_BUFFERS is 2 when DOUBLE_BUFFERING is defined, 1 otherwise). Which ones? Update them.
+     **/
+
+     /** EXERCISE 3: with double buffering, some of these buffers must be allocated twice
+     *  (NB_BUFFERS is 2 when DOUBLE_BUFFERING is defined, 1 otherwise). Which ones? Update them.
      */
     l1_input_size   = /* YOUR CODE HERE */;
     l1_weights_size = /* YOUR CODE HERE */;
