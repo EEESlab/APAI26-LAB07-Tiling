@@ -1,0 +1,21 @@
+# Style for the lab's own sources. The vendored PULP-NN / DORY / mchan files are not formatted.
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 120
+# K&R: function braces on their own line, all other braces on the same line
+BreakBeforeBraces: Linux
+InsertBraces: true
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None
+PointerAlignment: Right
+AlignTrailingComments: true
+IndentPPDirectives: None
+# Keep the exercise instructions in comments exactly as written
+ReflowComments: false
+SortIncludes: Never
+# Keep the hand-aligned blocks readable
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveMacros: Consecutive
+BinPackArguments: false
+BinPackParameters: false

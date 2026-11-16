@@ -27,10 +27,12 @@ def create_layer(channels, spatial_dim, kernel_shape):
     print("MACs: {}".format(macs))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('channels', type=int, help='Number of input and output channels')
-    parser.add_argument('spatial_dimensions', type=int, help='Output spatial dimension')
-    parser.add_argument('--kernel-shape', '-ks', dest='kernel_shape', type=int, default=3, help='Kernel size. Default: 3')
+    parser.add_argument("channels", type=int, help="Number of input and output channels")
+    parser.add_argument("spatial_dimensions", type=int, help="Output spatial dimension")
+    parser.add_argument(
+        "--kernel-shape", "-ks", dest="kernel_shape", type=int, default=3, help="Kernel size. Default: 3"
+    )
     args = parser.parse_args()
     create_layer(channels=args.channels, spatial_dim=args.spatial_dimensions, kernel_shape=args.kernel_shape)

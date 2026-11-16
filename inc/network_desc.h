@@ -30,4 +30,4 @@ extern unsigned int l1_input_size;
 extern unsigned int l1_weights_size;
 extern unsigned int l1_output_size;
 
-#endif  // __NETWORK_DESC_H__
+#endif // __NETWORK_DESC_H__

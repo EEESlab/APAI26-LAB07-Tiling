@@ -11,7 +11,6 @@
  *          Francesco Conti,  UniBo (<f.conti@unibo.it>)
  */
 
-
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
@@ -38,7 +37,7 @@
 #endif
 
 #if defined(EXERCISE1)
-#define USE_L1_MEM           // EXERCISE 1, steps 4-6: comment out this line to run the layer from L2
+#define USE_L1_MEM // EXERCISE 1, steps 4-6: comment out this line to run the layer from L2
 #elif defined(EXERCISE2)
 #define USE_L1_MEM
 #define ENABLE_TILING
@@ -79,7 +78,6 @@ int network_free();
 #define NB_DIM_ARGS 14
 #endif
 
-
 #ifndef PERF_MEASUREMENT
 #define PERF_MEASUREMENT
 // #define DEBUG
@@ -90,50 +88,40 @@ int network_free();
  * Useful structures to handle the network objects (i.e. layers)
  */
 /* Type of layer */
-typedef enum layer_type_e
-{
- CONV,
- DEPTH,
- LINEAR,
- POOLING,
- RELU,
- SOFTMAX
-}layer_type_t;
+typedef enum layer_type_e { CONV, DEPTH, LINEAR, POOLING, RELU, SOFTMAX } layer_type_t;
 
 /* Dimensions of the layer */
-typedef struct layer_dim_s
-{
-  int x_in;
-  int y_in;
-  int c_in;
-  int x_out;
-  int y_out;
-  int c_out;
-  int x_stride;
-  int y_stride;
-  int top_pad;
-  int bot_pad;
-  int lef_pad;
-  int rig_pad;
-  int x_ker;
-  int y_ker;
+typedef struct layer_dim_s {
+    int x_in;
+    int y_in;
+    int c_in;
+    int x_out;
+    int y_out;
+    int c_out;
+    int x_stride;
+    int y_stride;
+    int top_pad;
+    int bot_pad;
+    int lef_pad;
+    int rig_pad;
+    int x_ker;
+    int y_ker;
 } layer_dim_t;
 
 /* network information and data pointers */
-typedef struct network_layer_s
-{
-  int id;
-  layer_type_t type;
-  layer_dim_t layer_dim;
-  unsigned char *input_data;
-  unsigned char *output_data;
-  signed char *param_data;
-  unsigned char *buffer_0;
-  unsigned char *buffer_1;
+typedef struct network_layer_s {
+    int id;
+    layer_type_t type;
+    layer_dim_t layer_dim;
+    unsigned char *input_data;
+    unsigned char *output_data;
+    signed char *param_data;
+    unsigned char *buffer_0;
+    unsigned char *buffer_1;
 } network_layer_t;
 
-#define LAYER_ID(x)    NETWORK_IDS[(x)]
-#define LAYER_TYPE(x)  NETWORK_TYPES[(x)]
-#define LAYER_DIM(x)   *(layer_dim_t *)NETWORK_DIMS[(x)]
+#define LAYER_ID(x)   NETWORK_IDS[(x)]
+#define LAYER_TYPE(x) NETWORK_TYPES[(x)]
+#define LAYER_DIM(x)  *(layer_dim_t *)NETWORK_DIMS[(x)]
 
-#endif  // __MAIN_H__
+#endif // __MAIN_H__
