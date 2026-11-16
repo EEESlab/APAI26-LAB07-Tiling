@@ -3,4 +3,3 @@ mako
 numpy
 pyelftools
 six
-torch

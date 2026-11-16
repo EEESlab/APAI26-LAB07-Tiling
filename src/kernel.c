@@ -5,8 +5,11 @@
 /*
  * Convolution kernel
  */
-void convolution_run(int buffer_idx)
+void convolution_run(void *arg)
 {
+    /* pi_cl_team_fork() passes a void *, buffer_idx is packed into it (see kernel_run) */
+    const int buffer_idx = (int)(intptr_t)arg;
+
     /*
      * PULP-NN Convolution kernel
      */
@@ -96,7 +99,7 @@ void kernel_run(int buffer_idx)
     /*
      * Fork the job over available cores
      */
-    pi_cl_team_fork(NB_CORES, convolution_run, buffer_idx);
+    pi_cl_team_fork(NB_CORES, convolution_run, (void *)(intptr_t)buffer_idx);
 }
 
 /*

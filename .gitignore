@@ -16,3 +16,6 @@ __pycache__/
 # Office lock files (Word, LibreOffice)
 ~$*
 .~lock.*#
+
+# Windows download markers (WSL)
+*:Zone.Identifier

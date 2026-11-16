@@ -66,6 +66,7 @@ void layer_run()
 #ifndef USE_L1_MEM
     l1_layer.output_data = network_layers[0].output_data;
 #endif
+
     /*
      * Tile loop bounds
      */
@@ -112,7 +113,7 @@ void layer_run()
 
 #if !defined(ENABLE_TILING)
     /*
-     * EXERCISE 1 (given): no tiling, the whole layer is a single tile.
+     * No tiling, the whole layer is a single tile.
      * Load -> wait -> compute -> store -> wait.
      */
     tile_load(0, 0, 0, 0);
@@ -205,11 +206,15 @@ void layer_run()
 
 #ifdef PERFORMANCE
     /* EXERCISE 1: COMPLETE WITH THE PERFORMANCE COUNTERS READING */
-    /* YOUR CODE HERE */; // stop the counters
+
+    /* YOUR CODE HERE */;  // stop the counters
+
     uint32_t instr_cnt      = /* YOUR CODE HERE */;
     uint32_t cycles_cnt     = /* YOUR CODE HERE */;
     uint32_t act_cycles_cnt = /* YOUR CODE HERE */;
-    printf("[0]: instructions = %u, tot_cycles = %u, active_cycles = %u\n",
+
+    /* Counters of cluster core 0 (the core running layer_run): DMA load + conv + DMA store */
+    printf("[Cluster core 0, layer_run]: instructions = %u, tot_cycles = %u, active_cycles = %u\n",
            (unsigned int)instr_cnt,
            (unsigned int)cycles_cnt,
            (unsigned int)act_cycles_cnt);

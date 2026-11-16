@@ -13,8 +13,13 @@
 
 #include "pmsis.h"
 
-#define MCHAN_CMD_OFFSET    0
+/* The PULP SDK (archi/dma/mchan_v*.h, via pmsis.h) may already define these */
+#ifndef MCHAN_CMD_OFFSET
+#define MCHAN_CMD_OFFSET 0
+#endif
+#ifndef MCHAN_STATUS_OFFSET
 #define MCHAN_STATUS_OFFSET 4
+#endif
 
 #define MCHAN_CMD_ADDR    (MCHAN_BASE_ADDR + MCHAN_CMD_OFFSET)
 #define MCHAN_STATUS_ADDR (MCHAN_BASE_ADDR + MCHAN_STATUS_OFFSET)

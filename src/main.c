@@ -211,6 +211,19 @@ int main()
         return -CLUSTER_ERROR;
     }
 
+#ifdef PERFORMANCE
+    printf("Layer: %s %dx%d, input %dx%dx%d -> output %dx%dx%d (HxWxC)\n",
+           network_layers[0].type == CONV ? "CONV" : "other",
+           network_layers[0].layer_dim.y_ker,
+           network_layers[0].layer_dim.x_ker,
+           network_layers[0].layer_dim.y_in,
+           network_layers[0].layer_dim.x_in,
+           network_layers[0].layer_dim.c_in,
+           network_layers[0].layer_dim.y_out,
+           network_layers[0].layer_dim.x_out,
+           network_layers[0].layer_dim.c_out);
+#endif
+
     pi_perf_conf(1 << PI_PERF_CYCLES | 1 << PI_PERF_INSTR);
     pi_perf_reset();
     pi_perf_start();
@@ -223,7 +236,10 @@ int main()
     uint32_t cycles_cnt = pi_perf_read(PI_PERF_CYCLES);
 
 #ifdef PERFORMANCE
-    printf("[FC]: instructions = %u, tot_cycles = %u\n", (unsigned int)instr_cnt, (unsigned int)cycles_cnt);
+    /* Measured on the Fabric Controller around the whole cluster offload (FC mostly sleeps while waiting) */
+    printf("[Fabric Controller, cluster task offload]: instructions = %u, tot_cycles = %u\n",
+           (unsigned int)instr_cnt,
+           (unsigned int)cycles_cnt);
 #endif
 
     err = layer_check();

@@ -16,8 +16,7 @@
 # limitations under the License.
 import os
 import argparse
-import torch
-import torch.nn.functional as F
+import numpy as np
 
 
 def license(filename):
@@ -74,7 +73,7 @@ def define(name, value):
 
 def vector_begin(name, data):
     retval = ""
-    retval += define("{NAME}_SIZE".format(NAME=name.upper()), data.numel())
+    retval += define("{NAME}_SIZE".format(NAME=name.upper()), data.size)
     retval += "\n"
     retval += "PI_L2 uint8_t {name}[{NAME}_SIZE] = {{".format(name=name, NAME=name.upper())
     return retval
@@ -98,7 +97,7 @@ def render_vector(data, name, elements_per_row=10, spaces=4):
         if i % elements_per_row == 0:
             filerender += "\n" + indentation
         filerender += "{value:#04x}".format(value=int(element))
-        last_element = i == data.numel() - 1
+        last_element = i == data.size - 1
         if not last_element:
             filerender += ", "
     filerender += vector_end()
@@ -157,26 +156,34 @@ def clip(x, bits, signed=False):
 
 def create_input(channels, spatial_dim):
     size = (1, channels, spatial_dim, spatial_dim)
-    return torch.randint(low=0, high=100, size=size, dtype=torch.int32)
+    return np.random.randint(low=0, high=100, size=size, dtype=np.int32)
 
 
 def create_weight(channels, kernel_shape):
     size = (channels, channels, kernel_shape, kernel_shape)
-    return torch.randint(low=0, high=5, size=size, dtype=torch.int32)
+    return np.random.randint(low=0, high=5, size=size, dtype=np.int32)
+
+
+def conv2d(x, w):
+    """Valid (no padding), stride-1 2D convolution. x: NCHW, w: OIHW -> NOHW."""
+    kernel_height, kernel_width = w.shape[2:]
+    # windows: N, C, H_out, W_out, KH, KW
+    windows = np.lib.stride_tricks.sliding_window_view(x, (kernel_height, kernel_width), axis=(2, 3))
+    return np.einsum("nchwij,ocij->nohw", windows.astype(np.int64), w.astype(np.int64))
 
 
 def create_layer(channels, spatial_dim, kernel_shape):
     x = create_input(channels, spatial_dim + kernel_shape - 1)
-    x_save = x.permute(0, 2, 3, 1).type(torch.int32)
+    x_save = x.transpose(0, 2, 3, 1).astype(np.int32)
     generate_vector_header(x_save, "input")
 
     w = create_weight(channels, kernel_shape)
-    w_save = w.permute(0, 2, 3, 1).type(torch.int32)
+    w_save = w.transpose(0, 2, 3, 1).astype(np.int32)
     generate_vector_header(w_save, "weights")
 
-    y = F.conv2d(x, w).type(torch.int32)
+    y = conv2d(x, w).astype(np.int32)
     y = clip(y >> 8, 8)
-    y_save = y.permute(0, 2, 3, 1).type(torch.int32)
+    y_save = y.transpose(0, 2, 3, 1).astype(np.int32)
     generate_vector_header(y_save, "output")
 
     generate_dims_header(

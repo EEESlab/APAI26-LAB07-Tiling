@@ -44,11 +44,25 @@ void pulp_nn_conv(uint8_t *pIn,
     uint16_t ch_in_r  = ch_in;
     uint16_t ch_out_r = ch_out;
 
-    int core_id          = pi_core_id();
+    int core_id = pi_core_id();
+
+    /*
+     * Each core gets its own private slice of the shared im2col
+     * buffer. The offset below is (core_id x slice size): the slice holds
+     * 2 columns of (ch_in * dim_kernel_x * dim_kernel_y) bytes, i.e. the two
+     * output pixels consumed by one call to pulp_nn_matmul().
+     * Total buffer size = slice size x NB_CORES.
+     */
     uint8_t *pIm2ColBase = pIm2ColBuffer + (2 * core_id * ch_in * dim_kernel_x * dim_kernel_y);
     int i_out_y, i_out_x, i_ker_y, i_ker_x;
     int Log2Core;
 
+    /*
+     * Work split across cores: output rows are divided into equal chunks.
+     * If dim_out_y is not a multiple of NB_CORES, cores are paired and each
+     * core of a pair takes half of the row (section 0 = left half,
+     * section 1 = right half) to balance the load better.
+     */
     uint8_t extra_chunk = ((dim_out_y & (NB_CORES - 1)) != 0);
     uint8_t extra_chunk_r;
     uint16_t dim_out_x_r;
@@ -80,87 +94,127 @@ void pulp_nn_conv(uint8_t *pIn,
     uint8_t *pIm2Col    = pIm2ColBase;
     uint8_t *pOutBuffer = pOut + (start_pixel * ch_out_r * dim_out_x) + (section * ch_out_r * dim_out_x_r);
 
+    /* Loop over the output pixels assigned to this core */
     for (i_out_y = start_pixel; i_out_y < stop_pixel; i_out_y++) {
+
         for (i_out_x = (section * dim_out_x_r);
              i_out_x < (dim_out_x_r + (section * (dim_out_x_r + flag_dim_out_x_odd)));
              i_out_x++) {
+
+            /*
+             * im2col: copy the kernel window of this output pixel into the
+             * current im2col column (ch_in * dim_kernel_x * dim_kernel_y bytes).
+             * The branches below only differ in how they handle padding:
+             *   - top / bottom padded rows: check every (y, x) position
+             *   - left / right padded columns: check only x
+             *   - interior: no padding, copy whole kernel rows at once
+             * (In this lab padding is 0, so only the interior branch runs.)
+             * These copies are pure data movement: they cost cycles but
+             * perform no MACs.
+             */
             if (i_out_y < padding_y_top) {
+
                 for (i_ker_y = ((i_out_y * stride_y) - padding_y_top);
                      i_ker_y < ((i_out_y * stride_y) - padding_y_top + dim_kernel_y);
                      i_ker_y++) {
+
                     for (i_ker_x = ((i_out_x * stride_x) - padding_x_left);
                          i_ker_x < ((i_out_x * stride_x) - padding_x_left + dim_kernel_x);
                          i_ker_x++) {
+
                         if ((i_ker_y < 0) || (i_ker_y >= dim_in_y) || (i_ker_x < 0) || (i_ker_x >= dim_in_x)) {
                             pulp_zero_mem(pIm2Col, ch_in);
                         } else {
                             pulp_nn_im2col_u8_to_u8(
                                 (uint8_t *)(pIn + ((i_ker_y * dim_in_x + i_ker_x) * ch_in_r)), pIm2Col, ch_in);
                         }
+
                         pIm2Col += ch_in;
                     }
                 }
             } else if (i_out_y < dim_out_y - padding_y_bottom) {
+
                 if (i_out_x < padding_x_left) {
+
                     for (i_ker_y = ((i_out_y * stride_y) - padding_y_top);
                          i_ker_y < ((i_out_y * stride_y) - padding_y_top + dim_kernel_y);
                          i_ker_y++) {
+
                         for (i_ker_x = ((i_out_x * stride_x) - padding_x_left);
                              i_ker_x < ((i_out_x * stride_x) - padding_x_left + dim_kernel_x);
                              i_ker_x++) {
+
                             if ((i_ker_x < 0) || (i_ker_x >= dim_in_x)) {
                                 pulp_zero_mem(pIm2Col, ch_in);
                             } else {
                                 pulp_nn_im2col_u8_to_u8(
                                     (uint8_t *)(pIn + ((i_ker_y * dim_in_x + i_ker_x) * ch_in_r)), pIm2Col, ch_in);
                             }
+
                             pIm2Col += ch_in;
                         }
                     }
                 } else if (i_out_x < (dim_out_x - padding_x_right)) {
+
                     for (i_ker_y = ((i_out_y * stride_y) - padding_y_top);
                          i_ker_y < ((i_out_y * stride_y) - padding_y_top + dim_kernel_y);
                          i_ker_y++) {
+
                         pulp_nn_im2col_u8_to_u8(
                             (uint8_t *)pIn + (i_ker_y * dim_in_x + i_out_x * stride_x - padding_x_left) * ch_in_r,
                             pIm2Col,
                             ch_in * dim_kernel_x);
+
                         pIm2Col += (ch_in * dim_kernel_x);
                     }
                 } else {
+
                     for (i_ker_y = ((i_out_y * stride_y) - padding_y_top);
                          i_ker_y < ((i_out_y * stride_y) - padding_y_top + dim_kernel_y);
                          i_ker_y++) {
+
                         for (i_ker_x = i_out_x * stride_x - padding_x_left;
                              i_ker_x < i_out_x * stride_x - padding_x_left + dim_kernel_x;
                              i_ker_x++) {
+
                             if ((i_ker_x < 0) || (i_ker_x >= dim_in_x)) {
                                 pulp_zero_mem(pIm2Col, ch_in);
                             } else {
                                 pulp_nn_im2col_u8_to_u8(
                                     (uint8_t *)pIn + (i_ker_y * dim_in_x + i_ker_x) * ch_in_r, pIm2Col, ch_in);
                             }
+
                             pIm2Col += ch_in;
                         }
                     }
                 }
             } else {
+
                 for (i_ker_y = ((i_out_y * stride_y) - padding_y_top);
                      i_ker_y < ((i_out_y * stride_y) - padding_y_top + dim_kernel_y);
                      i_ker_y++) {
+
                     for (i_ker_x = i_out_x * stride_x - padding_x_left;
                          i_ker_x < i_out_x * stride_x - padding_x_left + dim_kernel_x;
                          i_ker_x++) {
+
                         if (i_ker_y < 0 || (i_ker_y >= dim_in_y) || i_ker_x < 0 || i_ker_x >= dim_in_x) {
                             pulp_zero_mem(pIm2Col, ch_in);
                         } else {
                             pulp_nn_im2col_u8_to_u8(
                                 (uint8_t *)pIn + (i_ker_y * dim_in_x + i_ker_x) * ch_in_r, pIm2Col, ch_in);
                         }
+
                         pIm2Col += ch_in;
                     }
                 }
             }
+
+            /*
+             * Two columns ready (pIm2Col reached the end of this core's slice):
+             * compute 2 output pixels x ch_out channels. Each output element
+             * is a dot product of length ch_in * dim_kernel_x * dim_kernel_y.
+             */
             if (pIm2Col == (pIm2ColBase + ((ch_in * dim_kernel_x * dim_kernel_y) << 1))) {
                 pOutBuffer = pulp_nn_matmul(pIm2ColBase,
                                             pBias,
@@ -175,40 +229,58 @@ void pulp_nn_conv(uint8_t *pIn,
             }
         }
 
+        /*
+         * Leftover: if this core's part of the row had an odd number of pixels,
+         * one column is still waiting in the buffer. Compute it here, one
+         * output channel at a time (4 MACs per SumDotp4, plus a scalar tail
+         * when the dot-product length is not a multiple of 4). This path is
+         * less efficient than pulp_nn_matmul(): it reuses each weight load for
+         * one pixel only instead of two.
+         */
         if (pIm2Col != pIm2ColBase) {
             const int8_t *pA = pWeight;
             int i;
+
             for (i = 0; i < ch_out; i++) {
                 int sum = 0;
+
                 if (pBias != NULL) {
                     sum = ((int)(*pBias++));
                 }
 
                 uint8_t *pB             = pIm2ColBase;
                 uint16_t col_cnt_im2col = ch_in * dim_kernel_x * dim_kernel_y >> 2;
+
                 for (int j = 0; j < col_cnt_im2col; j++) {
                     v4s inA = *((v4s *)pA);
                     v4u inB = *((v4u *)pB);
 
                     sum = SumDotp4(inB, inA, sum);
+
                     pA += 4;
                     pB += 4;
                 }
+
                 col_cnt_im2col = (ch_in * dim_kernel_y * dim_kernel_x) & 0x3;
                 while (col_cnt_im2col) {
                     int8_t inA1  = *pA++;
                     uint8_t inB1 = *pB++;
                     asm volatile("" : : : "memory");
+
                     sum += inA1 * inB1;
 
                     col_cnt_im2col--;
                 }
+
                 *pOutBuffer = (uint8_t)clip8(sum >> out_shift);
                 pOutBuffer++;
             }
         }
+
         pOutBuffer += (extra_chunk * ((dim_out_x_r + ((1 - section) * flag_dim_out_x_odd)) * ch_out_r));
         pIm2Col = pIm2ColBase;
     }
+
+    /* Wait for all cores: cores with less work idle here (counts in your cycles!) */
     pi_cl_team_barrier(0);
 }
