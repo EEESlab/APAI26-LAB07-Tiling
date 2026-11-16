@@ -203,7 +203,7 @@ void layer_run()
   uint32_t instr_cnt      = /* YOUR CODE HERE */;
   uint32_t cycles_cnt     = /* YOUR CODE HERE */;
   uint32_t act_cycles_cnt = /* YOUR CODE HERE */;
-  printf("[0]: instructions = %d, tot_cycles = %d, active_cycles = %d \n", instr_cnt, cycles_cnt, act_cycles_cnt);
+  printf("[0]: instructions = %u, tot_cycles = %u, active_cycles = %u\n", (unsigned int)instr_cnt, (unsigned int)cycles_cnt, (unsigned int)act_cycles_cnt);
 #endif
 
 #ifdef DEBUG
@@ -240,11 +240,14 @@ int layer_check()
 
 int layer_free()
 {
+  const unsigned int im2col_size = (unsigned int)(2 * l1_layer.layer_dim.x_ker * l1_layer.layer_dim.y_ker * l1_layer.layer_dim.c_in * NB_CORES * sizeof(unsigned char));
 #ifdef USE_L1_MEM
   pi_l1_free(&cluster, l1_layer.input_data , l1_input_size);
   pi_l1_free(&cluster, l1_layer.param_data , l1_weights_size);
   pi_l1_free(&cluster, l1_layer.output_data, l1_output_size);
-  pi_l1_free(&cluster, l1_layer.buffer_0, (unsigned int)(2 * l1_layer.layer_dim.x_ker * l1_layer.layer_dim.y_ker * l1_layer.layer_dim.c_in * NB_CORES * sizeof(unsigned char)));
+  pi_l1_free(&cluster, l1_layer.buffer_0, im2col_size);
+#else
+  pi_l2_free(l1_layer.buffer_0, im2col_size);
 #endif
   pi_cluster_close(&cluster);
   return 0;

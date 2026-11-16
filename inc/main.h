@@ -12,6 +12,9 @@
  */
 
 
+#ifndef __MAIN_H__
+#define __MAIN_H__
+
 #include "pmsis.h"
 #include "pulp_nn_kernels.h"
 #include "bsp/bsp.h"
@@ -30,6 +33,10 @@
  *   ENABLE_TILING    - the output is split into TILING_PARAMETER x TILING_PARAMETER tiles (see main.c).
  *   DOUBLE_BUFFERING - two L1 buffers for input and output tiles, so DMA transfers overlap with compute.
  */
+#if defined(EXERCISE1) + defined(EXERCISE2) + defined(EXERCISE3) != 1
+#error "Select exactly one exercise in inc/main.h (EXERCISE1, EXERCISE2 or EXERCISE3)"
+#endif
+
 #if defined(EXERCISE1)
 #define USE_L1_MEM           // EXERCISE 1, steps 4-6: comment out this line to run the layer from L2
 #elif defined(EXERCISE2)
@@ -57,7 +64,6 @@
 #define CHECK_ERROR      8
 
 void cluster_init();
-int layer_check();
 int layer_init();
 int layer_free();
 void layer_run();
@@ -81,11 +87,9 @@ int network_free();
 #endif
 
 /*
- * Usefuf structures to handle the network objects (i.e. layers)
+ * Useful structures to handle the network objects (i.e. layers)
  */
 /* Type of layer */
-#ifndef layer_type_e
-#define layer_type_e
 typedef enum layer_type_e
 {
  CONV,
@@ -95,11 +99,8 @@ typedef enum layer_type_e
  RELU,
  SOFTMAX
 }layer_type_t;
-#endif
 
 /* Dimensions of the layer */
-#ifndef layer_type_s
-#define layer_type_s
 typedef struct layer_dim_s
 {
   int x_in;
@@ -117,11 +118,8 @@ typedef struct layer_dim_s
   int x_ker;
   int y_ker;
 } layer_dim_t;
-#endif
 
 /* network information and data pointers */
-#ifndef network_layer_s
-#define network_layer_s
 typedef struct network_layer_s
 {
   int id;
@@ -133,11 +131,9 @@ typedef struct network_layer_s
   unsigned char *buffer_0;
   unsigned char *buffer_1;
 } network_layer_t;
-#endif
 
-#ifndef GLOBAL_VARIABLES
-#define GLOBAL_VARIABLES
 #define LAYER_ID(x)    NETWORK_IDS[(x)]
 #define LAYER_TYPE(x)  NETWORK_TYPES[(x)]
 #define LAYER_DIM(x)   *(layer_dim_t *)NETWORK_DIMS[(x)]
-#endif
+
+#endif  // __MAIN_H__

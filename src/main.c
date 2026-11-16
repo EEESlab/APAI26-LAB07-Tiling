@@ -36,6 +36,7 @@ PI_L2 network_layer_t network_layers[NB_LAYER];
 PI_L1 network_layer_t l1_layer;
 struct pi_device cluster;
 int l1_alloc_error = 0;
+int tiling_error   = 0;
 unsigned int l1_input_size   = 0;
 unsigned int l1_weights_size = 0;
 unsigned int l1_output_size  = 0;
@@ -76,6 +77,12 @@ void cluster_init()
 #else
   const int TILING_PARAMETER =  1;
 #endif
+
+  if (network_layers[0].layer_dim.x_out % TILING_PARAMETER != 0 || network_layers[0].layer_dim.y_out % TILING_PARAMETER != 0)
+  {
+    tiling_error = 1;
+    return;
+  }
 
   l1_layer.layer_dim.x_out = network_layers[0].layer_dim.x_out / TILING_PARAMETER;
   l1_layer.layer_dim.y_out = network_layers[0].layer_dim.y_out / TILING_PARAMETER;
@@ -137,9 +144,6 @@ int main()
   printf("Executing Exercise 2\n");
 #elif defined EXERCISE3
   printf("Executing Exercise 3\n");
-#else
-  printf("No Exercise selected. Exiting...\n");
-  return -GENERAL_ERROR;
 #endif
 
   /*
@@ -179,6 +183,12 @@ int main()
 
   struct pi_cluster_task cluster_task;
   pi_cluster_send_task_to_cl(&cluster, pi_cluster_task(&cluster_task, cluster_init, NULL));
+  if (tiling_error)
+  {
+    printf("ERROR: TILING_PARAMETER must divide the output spatial dimension N = %d.\n", network_layers[0].layer_dim.x_out);
+    pi_cluster_close(&cluster);
+    return -CLUSTER_ERROR;
+  }
   if (l1_alloc_error)
   {
     printf("ERROR: L1 allocation failed, the layer (or tile) does not fit in L1 (64kB). Use a larger tiling factor.\n");
@@ -196,7 +206,7 @@ int main()
   uint32_t instr_cnt  = pi_perf_read(PI_PERF_INSTR);
   uint32_t cycles_cnt = pi_perf_read(PI_PERF_CYCLES);
 #ifdef PERFORMANCE
-  printf("[FC]: instructions = %d, tot_cycles = %d\n", instr_cnt, cycles_cnt);
+  printf("[FC]: instructions = %u, tot_cycles = %u\n", (unsigned int)instr_cnt, (unsigned int)cycles_cnt);
 #endif
   err = layer_check();
   if(err)

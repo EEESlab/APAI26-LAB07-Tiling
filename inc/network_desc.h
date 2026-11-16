@@ -9,26 +9,16 @@
  *          Francesco Conti,  UniBo (<f.conti@unibo.it>)
  */
 
+#ifndef __NETWORK_DESC_H__
+#define __NETWORK_DESC_H__
 
 /*
  * Depends from the model. Let's keep it simple and focus on the first conv layer.
  */
 
-
-#ifndef NETWORK_IDS_C
-#define NETWORK_IDS_C
 extern int NETWORK_IDS[NB_LAYER];
-#endif
-
-#ifndef NETWORK_TYPES_C
-#define NETWORK_TYPES_C
 extern int NETWORK_TYPES[NB_LAYER];
-#endif
-
-#ifndef NETWORK_DIMS_C
-#define NETWORK_DIMS_C
 extern int NETWORK_DIMS[NB_LAYER][NB_DIM_ARGS];
-#endif
 
 extern unsigned int L3_input[NB_LAYER];
 extern unsigned int L3_output[NB_LAYER];
@@ -39,3 +29,5 @@ extern struct pi_device cluster;
 extern unsigned int l1_input_size;
 extern unsigned int l1_weights_size;
 extern unsigned int l1_output_size;
+
+#endif  // __NETWORK_DESC_H__

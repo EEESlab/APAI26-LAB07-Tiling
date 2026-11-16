@@ -1,4 +1,4 @@
-# network_generate.py
+# parameters_generate.py
 # Alessio Burrello <alessio.burrello@unibo.it>
 # 
 # Copyright (C) 2019-2020 University of Bologna

@@ -4,8 +4,8 @@
 
 ## Material
 
-Assignment: [here](docs/assignment.docx)
-Slides: [here](docs/slides.pdf)
+Assignment: [here](_docs/assignment_lab07_old.docx)
+Slides: [part 1](_docs/slides_part1_old.pdf), [part 2](_docs/slides_part2_old.pdf)
 
 
 ## How to deliver the assignment:

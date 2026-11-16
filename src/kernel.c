@@ -53,8 +53,8 @@ void tile_load(int  h_tile_idx, int  w_tile_idx, int  c_tile_idx, int buffer_idx
    *  so that `network_offset` points to the right place in the L2 input.
    */
 
-  const int tile_overlap_x_in = 0;  // /* YOUR CODE HERE */ - change this value, now it is Hardcoded for 1x1
-  const int tile_overlap_y_in = 0;  // /* YOUR CODE HERE */ - change this value, now it is Hardcoded for 1x1
+  const int tile_overlap_x_in = 0;  // /* YOUR CODE HERE */ - 0 is correct only for a 1x1 kernel, change it
+  const int tile_overlap_y_in = 0;  // /* YOUR CODE HERE */ - 0 is correct only for a 1x1 kernel, change it
 
   const int network_offset =  h_tile_idx * (l1_layer.layer_dim.y_in - tile_overlap_y_in) * network_layers[0].layer_dim.x_in * network_layers[0].layer_dim.c_in
       +  w_tile_idx * (l1_layer.layer_dim.x_in - tile_overlap_x_in) * network_layers[0].layer_dim.c_in
