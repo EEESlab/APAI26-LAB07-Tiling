@@ -74,12 +74,6 @@ void layer_run()
     int nb_w_tile = 0;
 
     /*
-     * Tile loop indexes
-     */
-    int h_tile = 0;
-    int w_tile = 0;
-
-    /*
      * Cluster performance counters
      */
 #ifdef PERFORMANCE
@@ -252,7 +246,9 @@ int layer_check()
     int errors = 0;
     for (int i = 0; i < tot_layer_out_dim; i++) {
         if (output[i] != network_layers[0].output_data[i]) {
-            printf("ERROR at index %d, expected %x and got %x\n", i, output[i], network_layers[0].output_data[i]);
+            if (errors == 0) {
+                printf("ERROR: first mismatch at index %d\n", i);
+            }
             errors++;
         }
     }

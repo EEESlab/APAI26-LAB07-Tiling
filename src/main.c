@@ -55,7 +55,7 @@ void cluster_init()
 #endif
 
     /*
-     * Alloc L1 space for tiles: BE CAREFUL -> L1 is very limited (64kB)
+     * Alloc L1 space for tiles: BE CAREFUL -> L1 is very limited (64kB, about 56kB usable)
      */
     l1_layer.id   = LAYER_ID(0);
     l1_layer.type = LAYER_TYPE(0);
@@ -206,7 +206,7 @@ int main()
     }
 
     if (l1_alloc_error) {
-        printf("ERROR: L1 allocation failed, the layer (or tile) does not fit in L1 (64kB). Use a larger tiling "
+        printf("ERROR: L1 allocation failed, the layer (or tile) does not fit in L1 (about 56kB usable). Use a larger tiling "
                "factor.\n");
 
         pi_cluster_close(&cluster);
@@ -227,23 +227,7 @@ int main()
            network_layers[0].layer_dim.c_out);
 #endif
 
-    pi_perf_conf(1 << PI_PERF_CYCLES | 1 << PI_PERF_INSTR);
-    pi_perf_reset();
-    pi_perf_start();
-
     pi_cluster_send_task_to_cl(&cluster, pi_cluster_task(&cluster_task, layer_run, NULL));
-
-    pi_perf_stop();
-
-    uint32_t instr_cnt  = pi_perf_read(PI_PERF_INSTR);
-    uint32_t cycles_cnt = pi_perf_read(PI_PERF_CYCLES);
-
-#ifdef PERFORMANCE
-    /* Measured on the Fabric Controller around the whole cluster offload (FC mostly sleeps while waiting) */
-    printf("[Fabric Controller, cluster task offload]: instructions = %u, tot_cycles = %u\n",
-           (unsigned int)instr_cnt,
-           (unsigned int)cycles_cnt);
-#endif
 
     err = layer_check();
     if (err) {
